@@ -34,8 +34,8 @@ public class Minesweeper extends MouseAdapter{
     BufferedImageLoader b = new BufferedImageLoader();
     BufferedImage bomb = null;
     BufferedImage flag = null;
-    Thread loadBomb = new Thread(() -> bomb = b.loadImage("/bomb.jpg"));
-    Thread loadFlag = new Thread(() -> bomb = b.loadImage("/flag.png"));
+    Thread loadBomb = new Thread(() -> bomb = b.loadImage("/bomb.png"));
+    Thread loadFlag = new Thread(() -> flag = b.loadImage("/flag.png"));
 
     public ArrayList<int[]> locationsAndNumbers;
 
@@ -58,13 +58,18 @@ public class Minesweeper extends MouseAdapter{
         boardSpaces = new spaceType[30][30];
         board = new Space[30][30];
         t.start();
-//        loadBomb.start();
+        loadBomb.start();
         loadFlag.start();
     }
 
     public void tick(){
 
     }
+
+    //TODO THOUGHTS:
+    //If one clicks on a bomb, it fills the space with red -> inserts bomb picture
+    //All of the other bombs begin to show throughout the board
+    //Any misplaced flags go away and a big red X shows up on the spot
 
     //TODO Make a method to determine if the player wins or not
     public void render(Graphics g){
@@ -88,19 +93,12 @@ public class Minesweeper extends MouseAdapter{
                         else if(tCoord == 8) g.setColor(Color.LIGHT_GRAY);
                         g.drawString("" + board[i][j].getNum(), i * 20 + 105, j * 20 + 116);
                     }
-                }else{
-                    g.setColor(Color.red);
-                    if(board[i][j].getFlagged()){
-                        //TODO USE IMAGES IN THE FUTURE
-                        g.drawArc(i * 20 + 105, j * 20 + 105, 15, 15, 0, 360);
-                    }
-                }
+                }else
+                    if(board[i][j].getFlagged()) g.drawImage(flag, i * 20 + 100, j * 20 + 100, null);
             }
         }
         g.setColor(betweenClickedAndNot);
         drawBorders(g);
-//        g.drawImage(flag, 20, 20, null);
-//        g.drawImage(bomb, 20, 20, null);
     }
 
     public void mouseReleased(MouseEvent e){
@@ -130,43 +128,41 @@ public class Minesweeper extends MouseAdapter{
         }
     }
 
-    //TODO DRAWING BORDERS IS BROKEN WHEN BOMBS ARE INTRODUCED
     public void drawBorders(Graphics g){
         for(int i = 0; i < board.length; i++){
-            for(int j = 0; j < board[i].length; j++){
+            for(int j = 0; j < board[i].length; j++) {
                 Space s = board[i][j];
-                if(!s.getClicked()) continue;
-                if(s.getNum() == 0) continue;
+                if (!s.getClicked()) continue;
                 try {
-                    if (!board[i - 1][j - 1].getClicked() || board[i - 1][j - 1].getFlagged())
+                    if (!board[i - 1][j - 1].getClicked())
                         g.fillRect(i * 20 + 100 - 1, j * 20 + 100 - 1, 2, 2);
                 } catch (IndexOutOfBoundsException ignored) {}
                 try {
-                    if (!board[i - 1][j].getClicked() || board[i - 1][j].getFlagged())
+                    if (!board[i - 1][j].getClicked())
                         g.fillRect(i * 20 + 100 - 1, j * 20 + 100 - 1, 2, 20);
                 } catch (IndexOutOfBoundsException ignored) {}
                 try {
-                    if (!board[i - 1][j + 1].getClicked() || board[i - 1][j + 1].getFlagged())
+                    if (!board[i - 1][j + 1].getClicked())
                         g.fillRect(i * 20 + 100 - 1, j * 20 + 100 - 1 + 20, 2, 2);
                 } catch (IndexOutOfBoundsException ignored) {}
                 try {
-                    if (!board[i][j + 1].getClicked() || board[i][j + 1].getFlagged())
+                    if (!board[i][j + 1].getClicked())
                         g.fillRect(i * 20 + 100 - 1, j * 20 + 100 - 1 + 20, 20, 2);
                 } catch (IndexOutOfBoundsException ignored) {}
                 try {
-                    if (!board[i + 1][j + 1].getClicked() || board[i + 1][j + 1].getFlagged())
+                    if (!board[i + 1][j + 1].getClicked())
                         g.fillRect(i * 20 + 100 - 1 + 20, j * 20 + 100 - 1 + 20, 2, 2);
                 } catch (IndexOutOfBoundsException ignored) {}
                 try {
-                    if (!board[i + 1][j].getClicked() || board[i + 1][j].getFlagged())
+                    if (!board[i + 1][j].getClicked())
                         g.fillRect(i * 20 + 100 - 1 + 20, j * 20 + 100 - 1, 2, 20);
                 } catch (IndexOutOfBoundsException ignored) {}
                 try {
-                    if (!board[i + 1][j - 1].getClicked() || board[i + 1][j - 1].getFlagged())
+                    if (!board[i + 1][j - 1].getClicked())
                         g.fillRect(i * 20 + 100 - 1 + 20, j * 20 + 100 - 1, 2, 2);
                 } catch (IndexOutOfBoundsException ignored) {}
                 try {
-                    if (!board[i][j - 1].getClicked() || board[i][j - 1].getFlagged())
+                    if (!board[i][j - 1].getClicked())
                         g.fillRect(i * 20 + 100 - 1, j * 20 + 100 - 1, 20, 2);
                 } catch (IndexOutOfBoundsException ignored) {}
             }
@@ -276,6 +272,7 @@ public class Minesweeper extends MouseAdapter{
     }
 
     //TODO MAKE WEIGHTED BOMBS POSSIBLY
+    //TODO Make it so that the place a player clicks cannot be a bomb
     public void populateBombs(int num){
         for (spaceType[] boardSpace : boardSpaces) Arrays.fill(boardSpace, spaceType.CLEAR);
         LinkedList<Integer> list = new LinkedList<>();
